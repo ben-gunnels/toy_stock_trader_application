@@ -16,11 +16,25 @@ namespace StockMarket {
                                                         {"SCHWN", 25.63f}};
         
         public float GetValue(string symbol) {
+            /* 
+            Params:
+                string symbol: Stock symbol needed for reference. 
+            Returns:
+                Value of the stock if it exists in the database. Returns 0.0f otherwise.
+            */
             if (this.marketValues.TryGetValue(symbol, out float value)) { return value; } // Do checking here to see if symbol exists
             else { return 0.0f; }
         }
 
+        // Function is called when the price should be dynamically updated
         public void SetTicker(string symbol, float newVal) {
+            /* 
+            Params:
+                string symbol: Stock symbol needed for reference. 
+                float newVal: Desired price to set stock in database.
+            Returns:
+                Void.
+            */
             if (this.marketValues.TryGetValue(symbol, out float value)) {
                 this.marketValues[symbol] = newVal;
                 Console.WriteLine($"Symbol Price Adjusted: {symbol} with value: ${newVal}\n");
@@ -37,15 +51,22 @@ namespace StockMarket {
 namespace HedgeFund {
     class Fund {
         private int idCounter = 0;
-        public string fundName;
+        public string fundName; // Should be a unique name to distinguish the group of investors
 
-        Dictionary<int, PersonalPortfolio> investorRolodex = new Dictionary<int, PersonalPortfolio>();
+        Dictionary<int, PersonalPortfolio> investorRolodex = new Dictionary<int, PersonalPortfolio>(); // { userId: Portfolio }
 
         public Fund(string name) {
             this.fundName = name;
         }
 
+        // Use this function to acess or store a users portfolio
         public PersonalPortfolio GetInvestor(int id) {
+            /* 
+            Params:
+                int id: Known id of investor within the investment group. 
+            Returns:
+                Personal Portfolio associated with the investor id. Return null otherwise.
+            */
             // Returns the portfolio for a known investor id.
             if (this.investorRolodex.TryGetValue(id, out PersonalPortfolio portfolio)) {
                 Console.WriteLine($"Investor {portfolio.Name} welcome back!\n");
@@ -58,6 +79,12 @@ namespace HedgeFund {
         }  
 
         public void AddInvestor(string name, float funds, StockTable stockTable) {
+            /* 
+            Params:
+                string symbol: Stock symbol needed for reference. 
+            Returns:
+                Void. Prints to stdout to welcome investor to the firm. 
+            */
             investorRolodex[idCounter] = new PersonalPortfolio(name, this.idCounter, funds, stockTable);
             Console.WriteLine($"Welcome to the investment {this.fundName} firm {name}!\n");
             this.idCounter++;
@@ -81,6 +108,13 @@ namespace StockPortfolio {
         }
         
         public void BuyShares(string symbol, int shares) {
+            /* 
+            Params:
+                string symbol: Stock symbol needed for reference.
+                int shares: Desired number of shares to purchase. 
+            Returns:
+                Void. Prints to stdout to give user feedback on whether the purchase was successful or not. 
+            */
             if (this.stockTable.GetValue(symbol) == 0.0f) {
                 Console.WriteLine($"Symbol {symbol} is not in our database. Try another symbol\n");
                 return;
@@ -103,10 +137,17 @@ namespace StockPortfolio {
         }
 
         public void SellShares(string symbol, int shares) {
+            /* 
+            Params:
+                string symbol: Stock symbol needed for reference. 
+                int shares: Desired number of shares to sell.
+            Returns:
+                Void. Prints to stdout to give feedback on whether sale was successful or not.
+            */
             if (this.portfolio.TryGetValue(symbol, out int holdings))
             {
                 float price = this.stockTable.GetValue(symbol) * shares;
-                if (holdings >= shares) {
+                if (holdings >= shares) { // Check sufficient sellable shares
                     this.portfolio[symbol] = this.portfolio[symbol] - shares;
                     this.funds += price;
                     Console.WriteLine($"Successfully sold {shares} shares of {symbol} @ ${price}\n");
@@ -143,9 +184,9 @@ namespace StockPortfolio {
 
 class Program {
     static void Main(string[] args) {
-        StockMarket.StockTable defaultStockTable = new StockMarket.StockTable();
+        StockMarket.StockTable defaultStockTable = new StockMarket.StockTable(); // Stock table reference will be passed through to all portfolios.
 
-        HedgeFund.Fund alphaInvestmentGroup = new HedgeFund.Fund("Alpha");
+        HedgeFund.Fund alphaInvestmentGroup = new HedgeFund.Fund("Alpha"); // Initialize the investment group
 
         string[] names = { "Allan", 
                            "Steve", 
@@ -179,7 +220,7 @@ class Program {
             alphaInvestmentGroup.AddInvestor(names[i], funds[i], defaultStockTable);
         }
         
-        // Display the investors fund allocations
+        // Display the investors' fund allocations
         for (int i = 0; i < 13; i++) {
             Thread.Sleep(1000);
             alphaInvestmentGroup.GetInvestor(i);
